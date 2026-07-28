@@ -638,7 +638,7 @@ blockquote {
   animation: status-sweep 4.8s ease-in-out infinite;
 }
 .motion-enabled .hero-copy {
-  transform: translate3d(calc(var(--motion-x, 0px) * -.16), calc(var(--motion-y, 0px) * -.16 - var(--scroll-shift, 0px)), 0);
+  transform: translate3d(var(--copy-x, 0px), calc(var(--copy-y, 0px) - var(--scroll-shift, 0px)), 0);
   transition: transform .55s cubic-bezier(.2,.7,.2,1);
 }
 .motion-enabled .hero-grain {
@@ -646,7 +646,7 @@ blockquote {
   transition: transform .8s cubic-bezier(.2,.7,.2,1);
 }
 .motion-enabled .hero::before {
-  transform: translate3d(calc(var(--motion-x, 0px) * .35), calc(var(--motion-y, 0px) * .35), 0);
+  transform: translate3d(var(--depth-x, 0px), var(--depth-y, 0px), 0);
   transition: transform .9s cubic-bezier(.2,.7,.2,1);
 }
 .motion-enabled .scroll-cue::after {
