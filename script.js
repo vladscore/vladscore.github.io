@@ -41,6 +41,11 @@ if (segmentedPlayer) {
   const currentTime = segmentedPlayer.querySelector('[data-current-time]');
   const volume = segmentedPlayer.querySelector('#score-volume');
   const visualizer = segmentedPlayer.querySelector('.audio-visualizer');
+  const readingMode = segmentedPlayer.querySelector('[data-reading-mode]');
+  const readingLabel = segmentedPlayer.querySelector('[data-reading-label]');
+  const loopToggle = segmentedPlayer.querySelector('[data-loop]');
+  const loopLabel = segmentedPlayer.querySelector('[data-loop-label]');
+  const sleepTimer = segmentedPlayer.querySelector('[data-sleep-timer]');
   const sources = JSON.parse(segmentedPlayer.dataset.sources);
   const totalDuration = Number(segmentedPlayer.dataset.duration);
   let trackUrl = '';
@@ -50,6 +55,32 @@ if (segmentedPlayer) {
   let analyser = null;
   let frequencyData = null;
   let visualizerFrame = 0;
+  let vocalConfidence = 0;
+  let sleepStartTimer = 0;
+  let sleepFadeTimer = 0;
+  let sleepEndAt = 0;
+  let resumeApplied = false;
+  let lastSavedSecond = -1;
+
+  const storage = {
+    read(key, fallback = 0) {
+      try {
+        const value = Number(window.localStorage.getItem(key));
+        return Number.isFinite(value) ? value : fallback;
+      } catch {
+        return fallback;
+      }
+    },
+    write(key, value) {
+      try {
+        window.localStorage.setItem(key, String(value));
+      } catch {
+        // Playback remains functional when storage is unavailable.
+      }
+    }
+  };
+  const savedPosition = Math.min(totalDuration - 1, Math.max(0, storage.read('vlad-score-position', 0)));
+  const savedVolume = Math.min(1, Math.max(0, storage.read('vlad-score-volume', Number(volume.value))));
 
   const sizeVisualizer = () => {
     if (!visualizer) return;
@@ -75,6 +106,37 @@ if (segmentedPlayer) {
     const active = analyser && !audio.paused;
 
     if (active) analyser.getByteFrequencyData(frequencyData);
+
+    if (active && frequencyData?.length && audioContext) {
+      const hzPerBin = audioContext.sampleRate / analyser.fftSize;
+      const averageBand = (minimum, maximum) => {
+        const start = Math.max(1, Math.floor(minimum / hzPerBin));
+        const end = Math.min(frequencyData.length - 1, Math.ceil(maximum / hzPerBin));
+        let sum = 0;
+        for (let bin = start; bin <= end; bin += 1) sum += frequencyData[bin];
+        return sum / Math.max(1, end - start + 1);
+      };
+      const low = averageBand(45, 180);
+      const lowerVoice = averageBand(180, 850);
+      const femalePresence = averageBand(850, 4700);
+      const air = averageBand(4700, 9000);
+      const femalePassages = [[74, 122], [140, 205], [248, 265]];
+      const inFemalePassage = femalePassages.some(([start, end]) => audio.currentTime >= start && audio.currentTime <= end);
+      const likelyFemaleVoice = inFemalePassage
+        && femalePresence > 30
+        && femalePresence > lowerVoice * 1.04
+        && air > 7;
+      vocalConfidence = Math.min(1, Math.max(0, vocalConfidence + (likelyFemaleVoice ? .06 : -.032)));
+      segmentedPlayer.classList.toggle('vocal-active', vocalConfidence > .58);
+      const energy = Math.min(1, (low * .25 + lowerVoice * .3 + femalePresence * .35 + air * .1) / 150);
+      document.documentElement.style.setProperty('--audio-glow-opacity', String(.025 + energy * .16));
+      document.documentElement.style.setProperty('--audio-glow-scale', String(energy * .045));
+    } else {
+      vocalConfidence = Math.max(0, vocalConfidence - .08);
+      segmentedPlayer.classList.remove('vocal-active');
+      document.documentElement.style.setProperty('--audio-glow-opacity', '.025');
+      document.documentElement.style.setProperty('--audio-glow-scale', '0');
+    }
 
     for (let index = 0; index < barCount; index += 1) {
       const bin = Math.floor(index / barCount * (frequencyData?.length || barCount));
@@ -106,7 +168,7 @@ if (segmentedPlayer) {
       audioContext = new AudioContextClass();
       const sourceNode = audioContext.createMediaElementSource(audio);
       analyser = audioContext.createAnalyser();
-      analyser.fftSize = 128;
+      analyser.fftSize = 512;
       analyser.smoothingTimeConstant = .82;
       frequencyData = new Uint8Array(analyser.frequencyBinCount);
       sourceNode.connect(analyser);
@@ -159,8 +221,15 @@ if (segmentedPlayer) {
           });
         })
         .then(() => {
+          if (!resumeApplied && savedPosition > 8 && savedPosition < totalDuration - 8) {
+            audio.currentTime = savedPosition;
+            paintProgress(savedPosition);
+            state.textContent = 'RESUME';
+          } else {
+            state.textContent = 'PLAY';
+          }
+          resumeApplied = true;
           toggle.disabled = false;
-          state.textContent = 'PLAY';
         })
         .catch((error) => {
           console.error(error);
@@ -193,25 +262,56 @@ if (segmentedPlayer) {
 
   audio.addEventListener('play', () => {
     playerUI.classList.add('is-playing');
+    document.body.classList.add('is-listening');
     startVisualizer();
     state.textContent = 'PLAYING';
     toggle.setAttribute('aria-label', 'Pause Ordo Draconis');
+    if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'playing';
   });
 
   audio.addEventListener('pause', () => {
     playerUI.classList.remove('is-playing');
+    document.body.classList.remove('is-listening');
+    segmentedPlayer.classList.remove('vocal-active');
     window.cancelAnimationFrame(visualizerFrame);
     renderVisualizer();
-    if (state.textContent !== 'ERROR') state.textContent = 'PLAY';
+    if (state.textContent !== 'ERROR') state.textContent = audio.currentTime > 8 ? 'RESUME' : 'PLAY';
     toggle.setAttribute('aria-label', 'Play Ordo Draconis');
+    if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'paused';
   });
 
   audio.addEventListener('timeupdate', () => {
     if (!seeking) paintProgress(audio.currentTime);
+    const endingFadeSeconds = 8;
+    const remaining = totalDuration - audio.currentTime;
+    if (!audio.loop && !sleepEndAt && remaining >= 0 && remaining < endingFadeSeconds) {
+      const fade = Math.sqrt(Math.max(0, remaining / endingFadeSeconds));
+      audio.volume = Number(volume.value) * fade;
+    } else if (!sleepFadeTimer && Math.abs(audio.volume - Number(volume.value)) > .01) {
+      audio.volume = Number(volume.value);
+    }
+    const second = Math.floor(audio.currentTime);
+    if (second !== lastSavedSecond && second % 4 === 0) {
+      storage.write('vlad-score-position', audio.currentTime);
+      lastSavedSecond = second;
+    }
+    if ('mediaSession' in navigator && navigator.mediaSession.setPositionState && audio.currentTime < totalDuration) {
+      try {
+        navigator.mediaSession.setPositionState({
+          duration: totalDuration,
+          playbackRate: audio.playbackRate,
+          position: Math.max(0, audio.currentTime)
+        });
+      } catch {
+        // Position reporting is optional and browser-dependent.
+      }
+    }
   });
 
   audio.addEventListener('ended', () => {
     paintProgress(totalDuration);
+    audio.volume = Number(volume.value);
+    storage.write('vlad-score-position', 0);
     state.textContent = 'REPLAY';
   });
 
@@ -233,10 +333,100 @@ if (segmentedPlayer) {
 
   volume.addEventListener('input', () => {
     audio.volume = Number(volume.value);
+    storage.write('vlad-score-volume', audio.volume);
     volume.style.setProperty('--progress', `${Number(volume.value) * 100}%`);
   });
 
+  const setReadingMode = (enabled) => {
+    document.body.classList.toggle('reading-mode', enabled);
+    readingMode?.setAttribute('aria-pressed', String(enabled));
+    if (readingLabel) readingLabel.textContent = enabled ? 'Exit reading' : 'Reading mode';
+    if (enabled) segmentedPlayer.scrollTop = 0;
+  };
+
+  readingMode?.addEventListener('click', () => {
+    setReadingMode(!document.body.classList.contains('reading-mode'));
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && document.body.classList.contains('reading-mode')) {
+      setReadingMode(false);
+    }
+  });
+
+  loopToggle?.addEventListener('click', () => {
+    audio.loop = !audio.loop;
+    loopToggle.setAttribute('aria-pressed', String(audio.loop));
+    if (loopLabel) loopLabel.textContent = audio.loop ? 'Loop on' : 'Loop off';
+    showToast(audio.loop ? 'Loop enabled for uninterrupted reading.' : 'Loop disabled.');
+  });
+
+  const clearSleepTimer = () => {
+    window.clearTimeout(sleepStartTimer);
+    window.clearInterval(sleepFadeTimer);
+    sleepStartTimer = 0;
+    sleepFadeTimer = 0;
+    sleepEndAt = 0;
+  };
+
+  const beginSleepFade = () => {
+    const initialVolume = audio.volume;
+    const startedAt = Date.now();
+    const fadeDuration = 8000;
+    sleepFadeTimer = window.setInterval(() => {
+      const progress = Math.min(1, (Date.now() - startedAt) / fadeDuration);
+      audio.volume = initialVolume * (1 - progress);
+      if (progress < 1) return;
+      window.clearInterval(sleepFadeTimer);
+      sleepFadeTimer = 0;
+      audio.pause();
+      audio.volume = Number(volume.value);
+      if (sleepTimer) sleepTimer.value = '0';
+      sleepEndAt = 0;
+      showToast('The music faded out at the end of your reading timer.');
+    }, 200);
+  };
+
+  sleepTimer?.addEventListener('change', () => {
+    clearSleepTimer();
+    const minutes = Number(sleepTimer.value);
+    if (!minutes) {
+      showToast('Reading timer off.');
+      return;
+    }
+    sleepEndAt = Date.now() + minutes * 60 * 1000;
+    sleepStartTimer = window.setTimeout(beginSleepFade, Math.max(0, minutes * 60 * 1000 - 8000));
+    showToast(`Music will fade out in ${minutes} minutes.`);
+  });
+
+  if ('mediaSession' in navigator) {
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: 'Ordo Draconis — The Dragon’s Bloodline',
+      artist: 'Vlad Score · Modern Reworks',
+      album: 'Vlad, Son of the Dragon',
+      artwork: [
+        { src: 'assets/vlad-book-cover.webp', sizes: '1024x1536', type: 'image/webp' }
+      ]
+    });
+    const mediaAction = (name, handler) => {
+      try { navigator.mediaSession.setActionHandler(name, handler); } catch { /* unsupported action */ }
+    };
+    mediaAction('play', async () => { await ensureTrack(); await audio.play(); });
+    mediaAction('pause', () => audio.pause());
+    mediaAction('seekbackward', (details) => {
+      audio.currentTime = Math.max(0, audio.currentTime - (details.seekOffset || 10));
+    });
+    mediaAction('seekforward', (details) => {
+      audio.currentTime = Math.min(totalDuration, audio.currentTime + (details.seekOffset || 10));
+    });
+    mediaAction('seekto', (details) => {
+      if (typeof details.seekTime === 'number') audio.currentTime = Math.min(totalDuration, Math.max(0, details.seekTime));
+    });
+  }
+
   window.addEventListener('beforeunload', () => {
+    storage.write('vlad-score-position', audio.currentTime);
+    clearSleepTimer();
     window.cancelAnimationFrame(visualizerFrame);
     if (audioContext) audioContext.close();
     if (trackUrl) URL.revokeObjectURL(trackUrl);
@@ -247,8 +437,11 @@ if (segmentedPlayer) {
     if (audio.paused) renderVisualizer();
   }, { passive: true });
 
-  audio.volume = Number(volume.value);
-  paintProgress(0);
+  audio.volume = savedVolume;
+  volume.value = String(savedVolume);
+  volume.style.setProperty('--progress', `${savedVolume * 100}%`);
+  paintProgress(savedPosition > 8 ? savedPosition : 0);
+  if (savedPosition > 8 && savedPosition < totalDuration - 8) state.textContent = 'RESUME';
   sizeVisualizer();
   renderVisualizer();
 }

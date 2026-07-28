@@ -714,3 +714,235 @@ blockquote {
     opacity: 1 !important;
   }
 }
+
+
+/* Reading comfort, reactive artwork and system-ready listening */
+.player-panel {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+.player-panel::after {
+  content: '';
+  position: absolute;
+  z-index: 0;
+  inset: 12% -8% -28% 44%;
+  pointer-events: none;
+  background: radial-gradient(circle, rgba(189, 51, 45, .42), transparent 64%);
+  opacity: var(--audio-glow-opacity, .025);
+  transform: scale(calc(.98 + var(--audio-glow-scale, 0)));
+  transition: opacity .18s linear;
+}
+.player-panel > * { position: relative; z-index: 1; }
+
+.track-identity {
+  display: grid;
+  grid-template-columns: clamp(6.8rem, 10vw, 8.8rem) minmax(0, 1fr);
+  gap: clamp(1.2rem, 2.5vw, 2rem);
+  align-items: center;
+}
+.track-artwork {
+  position: relative;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border: 1px solid rgba(239, 229, 210, .34);
+  background:
+    linear-gradient(145deg, transparent 38%, rgba(8, 5, 4, .52)),
+    url('assets/vlad-hero-cover-mix.webp') 71% 36% / 235% auto no-repeat,
+    #100b09;
+  box-shadow: 10px 12px 0 rgba(8, 5, 4, .46);
+}
+.track-artwork::before {
+  content: 'MR 001';
+  position: absolute;
+  z-index: 3;
+  top: .55rem;
+  left: .6rem;
+  color: rgba(255, 255, 255, .82);
+  font-size: .48rem;
+  font-weight: 600;
+  letter-spacing: .18em;
+}
+.track-artwork::after {
+  content: '';
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  border: 5px solid rgba(8, 5, 4, .34);
+  pointer-events: none;
+}
+.artwork-woman {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  background: linear-gradient(105deg, rgba(189, 51, 45, .2), transparent 48%);
+  mix-blend-mode: screen;
+  opacity: .26;
+}
+.vocal-ornament {
+  position: absolute;
+  z-index: 4;
+  inset: 7%;
+  width: 86%;
+  height: 86%;
+  overflow: visible;
+  opacity: 0;
+  transform: scale(.94) rotate(-4deg);
+  transition: opacity .7s ease, transform 1.2s cubic-bezier(.2,.7,.2,1);
+}
+.dragon-thread,
+.voice-veil {
+  fill: none;
+  stroke: rgba(255, 247, 232, .92);
+  stroke-width: 1.25;
+  vector-effect: non-scaling-stroke;
+}
+.dragon-thread {
+  stroke: rgba(189, 51, 45, .92);
+  stroke-dasharray: 5 8;
+  transform-origin: 60px 60px;
+}
+.voice-veil { stroke-dasharray: 108; stroke-dashoffset: 108; }
+.voice-veil-second { stroke: rgba(189, 51, 45, .92); stroke-width: .9; }
+
+.player-panel.vocal-active .vocal-ornament {
+  opacity: .88;
+  transform: scale(1) rotate(0);
+}
+.player-panel.vocal-active .voice-veil {
+  animation: draw-voice 2.4s ease forwards;
+}
+.player-panel.vocal-active .dragon-thread {
+  animation: vocal-ring 8s linear infinite;
+}
+.player-panel.vocal-active .track-artwork {
+  border-color: rgba(239, 229, 210, .68);
+}
+
+.listening-tools {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: .55rem;
+  padding-top: .2rem;
+}
+.listening-tool {
+  min-height: 2.15rem;
+  display: inline-flex;
+  align-items: center;
+  gap: .52rem;
+  padding: .42rem .65rem;
+  border: 1px solid rgba(239, 229, 210, .2);
+  border-radius: 0;
+  background: rgba(8, 5, 4, .38);
+  color: var(--muted);
+  font-size: .58rem;
+  font-weight: 600;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+button.listening-tool:hover,
+button.listening-tool:focus-visible,
+.listening-tool[aria-pressed="true"] {
+  border-color: var(--blood-bright);
+  color: var(--ink);
+  background: rgba(142, 33, 30, .22);
+}
+.tool-icon {
+  color: var(--blood-bright);
+  font-size: .86rem;
+  line-height: 1;
+}
+.listening-timer { cursor: default; }
+.listening-timer select {
+  max-width: 8.3rem;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.listening-timer option { background: var(--night); color: var(--ink); }
+
+body.reading-mode { overflow: hidden; }
+body.reading-mode .player-panel {
+  position: fixed;
+  z-index: 90;
+  inset: 0;
+  margin: 0;
+  padding: clamp(1.5rem, 8vw, 8rem);
+  grid-template-columns: minmax(17rem, .8fr) minmax(22rem, 1fr);
+  align-content: center;
+  gap: clamp(2rem, 7vw, 7rem);
+  border: 0;
+  background:
+    radial-gradient(circle at 78% 46%, rgba(142, 33, 30, .11), transparent 36%),
+    linear-gradient(115deg, #070504, #120b09 62%, #080504);
+}
+body.reading-mode .player-panel::before {
+  content: 'READ · LISTEN · DESCEND';
+  position: absolute;
+  top: clamp(1.2rem, 4vw, 3rem);
+  left: clamp(1.5rem, 8vw, 8rem);
+  color: rgba(239, 229, 210, .32);
+  font-size: .57rem;
+  font-weight: 600;
+  letter-spacing: .28em;
+}
+body.reading-mode .player-panel::after { opacity: 0; }
+body.reading-mode .release-copy > .track-identity {
+  grid-template-columns: minmax(8rem, 12rem) minmax(0, 1fr);
+}
+body.reading-mode .release-copy .track-identity > div:last-child > p:last-child {
+  display: none;
+}
+body.reading-mode .track-artwork {
+  box-shadow: 16px 18px 0 rgba(0, 0, 0, .35);
+}
+body.reading-mode .audio-player {
+  border-color: rgba(239, 229, 210, .18);
+}
+body.reading-mode .audio-visualizer { opacity: .42; }
+body.reading-mode * { animation-play-state: paused !important; }
+body.reading-mode .player-panel.vocal-active .vocal-ornament { opacity: .5; }
+
+@keyframes draw-voice {
+  to { stroke-dashoffset: 0; }
+}
+@keyframes vocal-ring {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 920px) {
+  .track-identity { grid-template-columns: 6.8rem minmax(0, 1fr); }
+  body.reading-mode .player-panel {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    overflow-y: auto;
+  }
+  body.reading-mode .release-copy > .track-identity {
+    grid-template-columns: 7.6rem minmax(0, 1fr);
+  }
+}
+@media (max-width: 560px) {
+  .track-identity {
+    grid-template-columns: 5.6rem minmax(0, 1fr);
+    align-items: start;
+  }
+  .listening-tools { gap: .4rem; }
+  .listening-tool { min-height: 2rem; padding: .38rem .5rem; }
+  body.reading-mode .player-panel { padding: 5rem 1.2rem 1.5rem; }
+  body.reading-mode .release-copy > .track-identity {
+    grid-template-columns: 5.8rem minmax(0, 1fr);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .player-panel.vocal-active .voice-veil,
+  .player-panel.vocal-active .dragon-thread {
+    animation: none !important;
+    stroke-dashoffset: 0;
+  }
+}
