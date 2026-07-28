@@ -41,11 +41,6 @@
           <a class="button button-ghost" href="https://www.amazon.com/s?k=9798189402395" rel="noopener noreferrer">Find the novel</a>
         </div>
       </div>
-      <div class="hero-seal" aria-label="Original score emblem">
-        <span class="seal-ring">ORDO DRACONIS</span>
-        <span class="seal-dragon">D</span>
-        <span class="seal-date">MMXXVI</span>
-      </div>
       <p class="scroll-cue">Scroll to descend</p>
     </section>
 
@@ -67,23 +62,39 @@
         <li><span class="track-number">08</span><span class="track-name">A Name Without a Body</span><span class="track-note">Afterlife</span></li>
       </ol>
 
-      <div class="release-panel">
-        <div>
-          <p class="eyebrow">First release</p>
-          <h3>Dragon-Born</h3>
-          <p>A dark ceremonial piece built from baritone voice, female whisper, synth choir, and the language of the Order of the Dragon.</p>
+      <div class="release-panel player-panel" data-segmented-player data-duration="281.784" data-sources='["assets/audio/ordo-draconis-00.mp3","assets/audio/ordo-draconis-01.mp3","assets/audio/ordo-draconis-02.mp3","assets/audio/ordo-draconis-03.mp3","assets/audio/ordo-draconis-04.mp3","assets/audio/ordo-draconis-05.mp3","assets/audio/ordo-draconis-06.mp3"]'>
+        <div class="release-copy">
+          <p class="eyebrow">First release · 04:42</p>
+          <h3>Ordo Draconis — L’Hérédité du Dragon</h3>
+          <p>A synthesizer-led descent into inheritance, oath, and the shadow carried by the Dragon’s name.</p>
         </div>
-        <button class="button button-primary" type="button" data-coming-soon>Listen — coming soon</button>
+        <div class="audio-player" aria-label="Music player">
+          <audio preload="metadata" src="assets/audio/ordo-draconis-00.mp3"></audio>
+          <button class="player-toggle" type="button" aria-label="Play Ordo Draconis">
+            <span class="play-icon" aria-hidden="true">▶</span>
+            <span class="pause-icon" aria-hidden="true">Ⅱ</span>
+          </button>
+          <div class="player-main">
+            <div class="player-status">
+              <span class="player-state">PLAY</span>
+              <span class="player-time"><span data-current-time>00:00</span> / <span>04:42</span></span>
+            </div>
+            <label class="sr-only" for="score-progress">Track progress</label>
+            <input id="score-progress" class="player-progress" type="range" min="0" max="281.784" value="0" step="0.01">
+          </div>
+          <div class="player-volume">
+            <label for="score-volume">VOL</label>
+            <input id="score-volume" type="range" min="0" max="1" value="0.82" step="0.01">
+          </div>
+        </div>
       </div>
     </section>
 
     <section id="novel" class="section novel-section" aria-labelledby="novel-title">
-      <div class="book-object" aria-hidden="true">
-        <div class="book-cover">
-          <span class="book-kicker">A NOVEL</span>
-          <strong>VLAD,<br>SON OF THE<br>DRAGON</strong>
-          <span class="book-author">LAURENCE DRAGAN</span>
-        </div>
+      <div class="book-object">
+        <a class="book-cover-link" href="https://www.amazon.com/s?k=9798189402395" rel="noopener noreferrer" aria-label="Find Vlad, Son of the Dragon on Amazon">
+          <img class="book-cover-image" src="assets/vlad-book-cover.webp" width="1024" height="1536" loading="lazy" alt="Cover of Vlad, Son of the Dragon by Laurence Dragan">
+        </a>
       </div>
       <div class="novel-copy">
         <p class="eyebrow">The novel behind the music</p>
