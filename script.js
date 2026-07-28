@@ -504,3 +504,119 @@ if (!prefersReducedMotion) {
     });
   }, { passive: true });
 }
+
+
+/* Hidden living-world interactions */
+(() => {
+  const world = document.querySelector('[data-living-world]');
+  if (!world) return;
+
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const apparitions = [...world.querySelectorAll('.cover-apparition')];
+  const watcher = world.querySelector('.ink-watcher');
+  const pamphlet = world.querySelector('.pamphlet-ghost');
+  const sigils = [...world.querySelectorAll('[data-secret]')];
+  const counter = world.querySelector('[data-secret-count]');
+  const archive = document.querySelector('[data-archive-reveal]');
+  const closeArchive = archive?.querySelector('[data-close-archive]');
+  let found = new Set();
+  let apparitionTimer = 0;
+  let lastFocused = null;
+
+  try {
+    found = new Set(JSON.parse(localStorage.getItem('vlad-hidden-marks') || '[]'));
+  } catch {
+    found = new Set();
+  }
+
+  const syncDiscoveries = () => {
+    sigils.forEach((sigil) => sigil.classList.toggle('found', found.has(sigil.dataset.secret)));
+    if (counter) counter.textContent = String(found.size);
+    world.classList.toggle('has-discovery', found.size > 0);
+  };
+
+  const wake = (element, duration = 4400) => {
+    if (!element || document.body.classList.contains('reading-mode')) return;
+    element.classList.add('is-awake');
+    window.setTimeout(() => element.classList.remove('is-awake'), duration);
+  };
+
+  const scheduleApparition = () => {
+    window.clearTimeout(apparitionTimer);
+    if (reduced || document.hidden) return;
+    apparitionTimer = window.setTimeout(() => {
+      const pool = [...apparitions, watcher, pamphlet].filter(Boolean);
+      wake(pool[Math.floor(Math.random() * pool.length)], 3200 + Math.random() * 2800);
+      scheduleApparition();
+    }, 6500 + Math.random() * 9000);
+  };
+
+  const revealArchive = () => {
+    if (!archive || found.size < sigils.length) return;
+    lastFocused = document.activeElement;
+    archive.hidden = false;
+    document.body.style.overflow = 'hidden';
+    closeArchive?.focus();
+  };
+
+  const hideArchive = () => {
+    if (!archive) return;
+    archive.hidden = true;
+    document.body.style.overflow = '';
+    lastFocused?.focus?.();
+  };
+
+  sigils.forEach((sigil) => {
+    sigil.addEventListener('click', () => {
+      const mark = sigil.dataset.secret;
+      if (!found.has(mark)) {
+        found.add(mark);
+        try { localStorage.setItem('vlad-hidden-marks', JSON.stringify([...found])); } catch {}
+        syncDiscoveries();
+        showToast?.(`Mark recovered — ${found.size} of ${sigils.length}.`);
+        wake(pamphlet, 2600);
+      }
+      if (found.size === sigils.length) window.setTimeout(revealArchive, 700);
+    });
+  });
+
+  closeArchive?.addEventListener('click', hideArchive);
+  archive?.addEventListener('click', (event) => {
+    if (event.target === archive) hideArchive();
+  });
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && archive && !archive.hidden) hideArchive();
+  });
+
+  if (!reduced) {
+    document.addEventListener('pointermove', (event) => {
+      if (!watcher?.classList.contains('is-awake')) return;
+      const bounds = watcher.getBoundingClientRect();
+      const dx = Math.max(-5, Math.min(5, (event.clientX - (bounds.left + bounds.width / 2)) / 34));
+      const dy = Math.max(-3, Math.min(3, (event.clientY - (bounds.top + bounds.height / 2)) / 48));
+      watcher.style.setProperty('--look-x', `${dx}px`);
+      watcher.style.setProperty('--look-y', `${dy}px`);
+    }, { passive: true });
+
+    let scrollTick = 0;
+    window.addEventListener('scroll', () => {
+      if (scrollTick || document.body.classList.contains('reading-mode')) return;
+      scrollTick = window.requestAnimationFrame(() => {
+        const depth = window.scrollY / Math.max(1, document.documentElement.scrollHeight - innerHeight);
+        world.style.transform = `translateY(${Math.sin(depth * Math.PI * 3) * 7}px)`;
+        if (Math.abs((depth * 100) % 29 - 14.5) < .7) wake(apparitions[Math.floor(depth * 10) % apparitions.length], 2800);
+        scrollTick = 0;
+      });
+    }, { passive: true });
+
+    scheduleApparition();
+  }
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) window.clearTimeout(apparitionTimer);
+    else scheduleApparition();
+  });
+
+  syncDiscoveries();
+  if (!reduced) window.setTimeout(() => wake(apparitions[0], 4200), 1800);
+})();
