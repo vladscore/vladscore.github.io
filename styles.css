@@ -1082,3 +1082,10 @@ body.reading-mode .player-panel.vocal-active .vocal-ornament { opacity: .5; }
     stroke-dashoffset: 0;
   }
 }
+
+
+/* Reading mode stacking fix */
+body.reading-mode .score-section {
+  z-index: 1000;
+  overflow: visible;
+}
