@@ -117,12 +117,18 @@ if (segmentedPlayer) {
         return sum / Math.max(1, end - start + 1);
       };
       const low = averageBand(45, 180);
-      const vocal = averageBand(180, 3400);
-      const air = averageBand(3400, 7600);
-      const likelyVocal = vocal > 42 && vocal > low * .82 && vocal > air * 1.16;
-      vocalConfidence = Math.min(1, Math.max(0, vocalConfidence + (likelyVocal ? .055 : -.028)));
+      const lowerVoice = averageBand(180, 850);
+      const femalePresence = averageBand(850, 4700);
+      const air = averageBand(4700, 9000);
+      const femalePassages = [[74, 122], [140, 205], [248, 265]];
+      const inFemalePassage = femalePassages.some(([start, end]) => audio.currentTime >= start && audio.currentTime <= end);
+      const likelyFemaleVoice = inFemalePassage
+        && femalePresence > 30
+        && femalePresence > lowerVoice * 1.04
+        && air > 7;
+      vocalConfidence = Math.min(1, Math.max(0, vocalConfidence + (likelyFemaleVoice ? .06 : -.032)));
       segmentedPlayer.classList.toggle('vocal-active', vocalConfidence > .58);
-      const energy = Math.min(1, (low * .3 + vocal * .55 + air * .15) / 150);
+      const energy = Math.min(1, (low * .25 + lowerVoice * .3 + femalePresence * .35 + air * .1) / 150);
       document.documentElement.style.setProperty('--audio-glow-opacity', String(.025 + energy * .16));
       document.documentElement.style.setProperty('--audio-glow-scale', String(energy * .045));
     } else {
