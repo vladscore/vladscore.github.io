@@ -276,6 +276,14 @@ if (segmentedPlayer) {
 
   audio.addEventListener('timeupdate', () => {
     if (!seeking) paintProgress(audio.currentTime);
+    const endingFadeSeconds = 8;
+    const remaining = totalDuration - audio.currentTime;
+    if (!audio.loop && !sleepEndAt && remaining >= 0 && remaining < endingFadeSeconds) {
+      const fade = Math.sqrt(Math.max(0, remaining / endingFadeSeconds));
+      audio.volume = Number(volume.value) * fade;
+    } else if (!sleepFadeTimer && Math.abs(audio.volume - Number(volume.value)) > .01) {
+      audio.volume = Number(volume.value);
+    }
     const second = Math.floor(audio.currentTime);
     if (second !== lastSavedSecond && second % 4 === 0) {
       storage.write('vlad-score-position', audio.currentTime);
@@ -296,6 +304,7 @@ if (segmentedPlayer) {
 
   audio.addEventListener('ended', () => {
     paintProgress(totalDuration);
+    audio.volume = Number(volume.value);
     storage.write('vlad-score-position', 0);
     state.textContent = 'REPLAY';
   });
@@ -386,7 +395,7 @@ if (segmentedPlayer) {
 
   if ('mediaSession' in navigator) {
     navigator.mediaSession.metadata = new MediaMetadata({
-      title: 'Ordo Draconis — L’Hérédité du Dragon',
+      title: 'Ordo Draconis — The Dragon’s Bloodline',
       artist: 'Vlad Score · Modern Reworks',
       album: 'Vlad, Son of the Dragon',
       artwork: [
