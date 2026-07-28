@@ -65,12 +65,19 @@ button, input { font: inherit; }
 }
 .dragon-mark {
   display: grid;
-  width: 2.4rem;
+  width: 2.7rem;
   aspect-ratio: 1;
   place-items: center;
+  padding: .28rem;
   border: 1px solid var(--blood-bright);
-  color: var(--blood-bright);
-  font-size: 1.2rem;
+  background: radial-gradient(circle at 42% 35%, rgba(239, 229, 210, .07), transparent 65%);
+}
+.dragon-mark img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, .65));
 }
 .site-nav { display: flex; gap: 2rem; }
 .site-nav a {
