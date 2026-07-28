@@ -231,6 +231,45 @@ h2 { margin: 0 0 1.4rem; font-size: clamp(2.6rem, 5vw, 5rem); letter-spacing: -.
 h3 { margin: 0 0 .8rem; font-size: clamp(1.45rem, 2.3vw, 2.2rem); }
 p { color: #c7b9a8; }
 .score-section { background: var(--panel); }
+.collection-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 2rem;
+  margin: 0 0 1.5rem;
+  padding: 1.5rem 0;
+  border-top: 3px solid var(--ink);
+}
+.collection-heading > div { max-width: 48rem; }
+.collection-heading h3 {
+  margin: 0;
+  font-size: clamp(2rem, 4vw, 3.6rem);
+  text-transform: uppercase;
+}
+.collection-heading p { margin: .65rem 0 0; }
+.collection-kicker {
+  color: var(--blood-bright) !important;
+  font-size: .68rem;
+  font-weight: 600;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+}
+.collection-status {
+  flex: none;
+  padding: .55rem .8rem;
+  border: 1px solid var(--line);
+  color: var(--muted);
+  font-size: .62rem;
+  font-weight: 600;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+.modern-heading { margin-top: 5rem; border-top-color: var(--blood-bright); }
+.collection-status-live {
+  border-color: var(--blood-bright);
+  background: var(--blood-bright);
+  color: #fff;
+}
 .tracklist { margin: 0; padding: 0; border-top: 1px solid var(--line); list-style: none; }
 .tracklist li {
   display: grid;
@@ -480,6 +519,7 @@ blockquote {
       #100b09;
   }
   .player-panel { grid-template-columns: 1fr; }
+  .collection-heading { align-items: flex-start; flex-direction: column; gap: 1rem; }
   .scroll-cue { display: none; }
   .novel-section, .release-section { grid-template-columns: 1fr; }
   .book-cover-link { width: min(76vw, 330px); }
