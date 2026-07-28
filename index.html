@@ -105,6 +105,27 @@
             <label for="score-volume">VOL</label>
             <input id="score-volume" type="range" min="0" max="1" value="0.82" step="0.01">
           </div>
+          <div class="listening-tools" aria-label="Listening comfort controls">
+            <button class="listening-tool" type="button" data-reading-mode aria-pressed="false">
+              <span class="tool-icon" aria-hidden="true">◐</span>
+              <span data-reading-label>Reading mode</span>
+            </button>
+            <button class="listening-tool" type="button" data-loop aria-pressed="false">
+              <span class="tool-icon" aria-hidden="true">↻</span>
+              <span data-loop-label>Loop off</span>
+            </button>
+            <label class="listening-tool listening-timer">
+              <span class="tool-icon" aria-hidden="true">⌛</span>
+              <span class="sr-only">Stop playback after</span>
+              <select data-sleep-timer aria-label="Stop playback after">
+                <option value="0">No timer</option>
+                <option value="15">Stop in 15 min</option>
+                <option value="30">Stop in 30 min</option>
+                <option value="45">Stop in 45 min</option>
+                <option value="60">Stop in 60 min</option>
+              </select>
+            </label>
+          </div>
         </div>
       </div>
     </section>
