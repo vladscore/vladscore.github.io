@@ -242,7 +242,25 @@ h1 span { display: block; color: var(--blood-bright); }
 h2 { margin: 0 0 1.4rem; font-size: clamp(2.6rem, 5vw, 5rem); letter-spacing: -.025em; }
 h3 { margin: 0 0 .8rem; font-size: clamp(1.45rem, 2.3vw, 2.2rem); }
 p { color: #c7b9a8; }
-.score-section { background: var(--panel); }
+.score-section {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  background: var(--panel);
+}
+.score-section::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: 0 0 41% 42%;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, var(--panel), transparent 38%),
+    linear-gradient(0deg, var(--panel), transparent 26%, transparent 72%, var(--panel)),
+    url('assets/vlad-book-cover.webp') 56% 57% / cover no-repeat;
+  opacity: .105;
+  filter: grayscale(.35) contrast(1.1);
+}
 .collection-heading {
   display: flex;
   align-items: flex-end;
@@ -434,11 +452,26 @@ p { color: #c7b9a8; }
 .player-volume input { --progress: 82%; }
 
 .novel-section {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
   display: grid;
   grid-template-columns: minmax(240px, .65fr) 1fr;
   gap: clamp(3rem, 8vw, 8rem);
   align-items: center;
   background: #0d0908;
+}
+.novel-section::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, transparent 0 48%, rgba(13,9,8,.68) 70%),
+    url('assets/order-of-the-dragon-emblem.svg') 92% 84% / min(34vw, 29rem) auto no-repeat;
+  opacity: .075;
+  filter: grayscale(1) brightness(2.2);
 }
 .book-object { perspective: 1200px; display: grid; place-items: center; }
 .book-cover-link {
@@ -478,7 +511,24 @@ blockquote {
 .book-data dd { margin: .35rem 0 0; }
 .text-link { color: var(--ink); text-underline-offset: .35rem; text-decoration-color: var(--blood-bright); }
 
-.world-section { background: #1b120f; }
+.world-section {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  background:
+    linear-gradient(90deg, rgba(27,18,15,.98) 0 39%, rgba(27,18,15,.73) 68%, rgba(27,18,15,.88)),
+    linear-gradient(0deg, #1b120f 0 3%, transparent 28% 72%, #1b120f 97%),
+    url('assets/vlad-hero-cover-mix.webp') 76% 72% / cover no-repeat,
+    #1b120f;
+}
+.world-section::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(112deg, transparent 0 84px, rgba(239,229,210,.024) 85px 86px);
+}
 .war-grid { display: grid; grid-template-columns: repeat(2, 1fr); border: 1px solid var(--line); }
 .war-grid article { position: relative; min-height: 22rem; padding: clamp(2rem, 5vw, 4rem); overflow: hidden; }
 .war-grid article + article { border-left: 1px solid var(--line); }
@@ -526,6 +576,75 @@ blockquote {
 .site-footer strong { font-family: var(--display); letter-spacing: .08em; }
 .site-footer p, .footer-meta { margin: .35rem 0 0; color: var(--muted); font-size: .72rem; }
 .footer-meta { display: flex; flex-direction: column; text-align: right; }
+.legal-links {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: .35rem 1rem;
+  margin-top: .7rem;
+}
+.legal-links a {
+  color: var(--muted);
+  text-underline-offset: .25rem;
+  text-decoration-color: rgba(189, 51, 45, .65);
+}
+.legal-links a:hover,
+.legal-links a:focus-visible { color: var(--ink); }
+
+/* Legal pages */
+.legal-page .site-header {
+  position: relative;
+  background: #090605;
+  border-bottom-color: var(--line);
+}
+.legal-main {
+  min-height: 72vh;
+  background:
+    linear-gradient(90deg, rgba(16,11,9,.985) 0 47%, rgba(16,11,9,.88) 72%, rgba(16,11,9,.97)),
+    url('assets/vlad-hero-cover-mix.webp') 82% 32% / cover fixed no-repeat,
+    var(--night);
+}
+.legal-hero {
+  padding: clamp(4.5rem, 9vw, 8rem) clamp(1.4rem, 8vw, 9rem) clamp(2.5rem, 5vw, 4rem);
+  border-bottom: 1px solid var(--line);
+}
+.legal-hero h1 {
+  max-width: 64rem;
+  font-size: clamp(2.8rem, 6vw, 6rem);
+}
+.legal-hero p:last-child { max-width: 46rem; }
+.legal-content {
+  width: min(100%, 78rem);
+  padding: clamp(3rem, 7vw, 6rem) clamp(1.4rem, 8vw, 9rem);
+}
+.legal-content section {
+  max-width: 52rem;
+  padding: 2rem 0;
+  border-top: 1px solid var(--line);
+}
+.legal-content h2 {
+  font-size: clamp(1.55rem, 3vw, 2.5rem);
+  margin-bottom: .9rem;
+}
+.legal-content h3 { margin-top: 1.5rem; font-size: 1.1rem; }
+.legal-content p,
+.legal-content li { color: #c7b9a8; }
+.legal-content a { text-underline-offset: .25rem; text-decoration-color: var(--blood-bright); }
+.legal-content dl { display: grid; grid-template-columns: minmax(9rem, .35fr) 1fr; gap: .6rem 1.5rem; }
+.legal-content dt {
+  color: var(--muted);
+  font-size: .68rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+.legal-content dd { margin: 0; }
+.legal-back {
+  display: inline-flex;
+  margin-top: 2rem;
+  color: var(--ink);
+  text-underline-offset: .3rem;
+  text-decoration-color: var(--blood-bright);
+}
 .toast {
   position: fixed;
   right: 1.2rem;
@@ -567,6 +686,19 @@ blockquote {
   }
   .site-nav.open { display: flex; }
   .site-nav a { padding: .7rem 0; }
+  .legal-page .site-header { align-items: flex-start; }
+  .legal-page .site-nav {
+    position: static;
+    display: flex;
+    width: auto;
+    flex-flow: row wrap;
+    justify-content: flex-end;
+    gap: .25rem 1rem;
+    padding: 0;
+    background: transparent;
+    border: 0;
+  }
+  .legal-page .site-nav a { padding: .45rem 0; }
   .hero {
     grid-template-columns: 1fr;
     padding-top: 9rem;
@@ -586,6 +718,8 @@ blockquote {
 }
 
 @media (max-width: 560px) {
+  .legal-page .site-header { flex-direction: column; gap: .8rem; }
+  .legal-page .site-nav { justify-content: flex-start; }
   .tracklist li { grid-template-columns: 2.3rem 1fr; gap: .7rem; }
   .track-note { grid-column: 2; }
   .release-panel { align-items: stretch; flex-direction: column; }
@@ -597,6 +731,8 @@ blockquote {
   .form-row input { border-right: 1px solid var(--line); }
   .site-footer { flex-direction: column; }
   .footer-meta { text-align: left; }
+  .legal-links { justify-content: flex-start; }
+  .legal-content dl { grid-template-columns: 1fr; }
 }
 
 @media (prefers-reduced-motion: reduce) {
