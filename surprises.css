@@ -1,0 +1,169 @@
+/* Additional artwork and living-world layer */
+.hero::before {
+  background-image: repeating-radial-gradient(ellipse at 83% 52%, transparent 0 17px, rgba(239,229,210,.055) 18px 19px);
+}
+
+.artwork-switch {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  perspective: 800px;
+}
+.artwork-switch .track-artwork {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  backface-visibility: hidden;
+  transition: transform .85s cubic-bezier(.2,.75,.2,1), opacity .6s ease;
+}
+.artwork-switch .track-artwork:first-child { transform: rotateY(0); }
+.track-artwork-alt {
+  display: grid;
+  place-items: center;
+  padding: 13%;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 42%, rgba(189,51,45,.28), transparent 34%),
+    linear-gradient(150deg, rgba(7,5,4,.22), rgba(7,5,4,.92)),
+    url('assets/vlad-hero-cover-mix.webp') 48% 82% / 230% auto no-repeat;
+  border: 1px solid rgba(239,229,210,.38);
+  transform: rotateY(-180deg);
+  box-shadow: 10px 12px 0 rgba(8,5,4,.46);
+}
+.track-artwork-alt::before { content: 'MR 001 · BLOODLINE'; }
+.track-artwork-alt img {
+  width: 68%;
+  height: 68%;
+  object-fit: contain;
+  filter: grayscale(1) brightness(2.5);
+  opacity: .72;
+}
+.track-artwork-alt > span {
+  position: absolute;
+  right: 8%;
+  bottom: 7%;
+  color: rgba(239,229,210,.82);
+  font: 600 clamp(.42rem,.62vw,.58rem)/1.35 var(--display);
+  letter-spacing: .16em;
+  text-align: right;
+}
+.artwork-switch[aria-pressed="true"] .track-artwork:first-child {
+  transform: rotateY(180deg);
+  opacity: 0;
+}
+.artwork-switch[aria-pressed="true"] .track-artwork-alt {
+  transform: rotateY(0);
+  opacity: 1;
+}
+.artwork-switch:focus-visible { outline: 1px solid var(--blood-bright); outline-offset: 5px; }
+
+.cover-apparition.is-awake { opacity: .17; }
+.apparition-battle.is-awake { opacity: .13; }
+.pamphlet-ghost { color: rgba(239,229,210,.24); }
+.secret-sigil { color: rgba(239,229,210,.16); }
+
+.raven-shadow {
+  position: absolute;
+  top: 16vh;
+  left: -18vw;
+  width: 12rem;
+  height: 4rem;
+  opacity: 0;
+  background:
+    radial-gradient(ellipse at 50% 50%, rgba(0,0,0,.82), transparent 68%);
+  clip-path: polygon(0 50%,26% 34%,44% 48%,50% 16%,56% 48%,74% 34%,100% 50%,72% 58%,55% 55%,50% 88%,45% 55%,28% 58%);
+  filter: blur(2px);
+}
+.raven-shadow.crossing { animation: raven-cross 5.8s ease-in-out forwards; }
+
+.ember-field { position: absolute; inset: 0; opacity: 0; transition: opacity 1.2s ease; }
+.ember-field.is-awake { opacity: .72; }
+.ember-field i {
+  position: absolute;
+  bottom: -12px;
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  background: #d64a36;
+  box-shadow: 0 0 8px #bd332d;
+  animation: ember-rise 6s ease-out infinite;
+}
+.ember-field i:nth-child(1){left:14%;animation-delay:.2s}
+.ember-field i:nth-child(2){left:32%;animation-delay:1.8s}
+.ember-field i:nth-child(3){left:57%;animation-delay:3.1s}
+.ember-field i:nth-child(4){left:76%;animation-delay:.9s}
+.ember-field i:nth-child(5){left:91%;animation-delay:4.2s}
+
+.threshold-whisper {
+  position: absolute;
+  left: clamp(1.5rem,7vw,7rem);
+  bottom: 8vh;
+  max-width: min(32rem,76vw);
+  color: rgba(239,229,210,.66);
+  font: 600 clamp(.58rem,.9vw,.76rem)/1.6 var(--display);
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 1.1s ease, transform 1.6s ease;
+}
+.threshold-whisper.is-awake { opacity: 1; transform: none; }
+
+.dragon-pulse {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: min(42vw,30rem);
+  aspect-ratio: 1;
+  transform: translate(-50%,-50%) scale(.82);
+  opacity: 0;
+  pointer-events: none;
+}
+.dragon-pulse img { width: 100%; height: 100%; filter: grayscale(1) brightness(2.2); }
+.dragon-pulse.is-awake { animation: dragon-reveal 3.8s ease both; }
+
+body.is-listening:not(.reading-mode) .living-world::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 72% 44%, rgba(142,33,30,.10), transparent 34%);
+  opacity: var(--audio-glow-opacity,.04);
+  animation: listening-breath 4.5s ease-in-out infinite;
+}
+body.reading-mode .raven-shadow,
+body.reading-mode .ember-field,
+body.reading-mode .threshold-whisper,
+body.reading-mode .dragon-pulse { display:none!important; }
+
+@keyframes raven-cross {
+  0% { transform: translateX(0) translateY(0) scale(.65); opacity: 0; }
+  18% { opacity: .42; }
+  52% { transform: translateX(61vw) translateY(7vh) scale(1); opacity: .34; }
+  100% { transform: translateX(132vw) translateY(-5vh) scale(.72); opacity: 0; }
+}
+@keyframes ember-rise {
+  0% { transform: translateY(0) translateX(0); opacity: 0; }
+  18% { opacity: .8; }
+  100% { transform: translateY(-78vh) translateX(22px); opacity: 0; }
+}
+@keyframes dragon-reveal {
+  0%,100% { opacity: 0; transform: translate(-50%,-50%) scale(.82) rotate(-3deg); }
+  34%,66% { opacity: .095; transform: translate(-50%,-50%) scale(1) rotate(0); }
+}
+@keyframes listening-breath { 50% { transform: scale(1.05); opacity: .75; } }
+
+@media (max-width:700px) {
+  .cover-apparition.is-awake { opacity:.12; }
+  .raven-shadow { width:8rem; }
+  .threshold-whisper { bottom:12vh; }
+}
+@media (prefers-reduced-motion:reduce) {
+  .raven-shadow,.ember-field,.threshold-whisper,.dragon-pulse { display:none!important; }
+  .artwork-switch .track-artwork { transition:none; }
+}
