@@ -40,12 +40,9 @@ if (segmentedPlayer) {
   const currentTime = segmentedPlayer.querySelector('[data-current-time]');
   const volume = segmentedPlayer.querySelector('#score-volume');
   const sources = JSON.parse(segmentedPlayer.dataset.sources);
-  const segmentDurations = [42, 42, 42, 42, 42, 42, 29.784];
-  const offsets = segmentDurations.map((_, index) =>
-    segmentDurations.slice(0, index).reduce((sum, duration) => sum + duration, 0)
-  );
   const totalDuration = Number(segmentedPlayer.dataset.duration);
-  let segmentIndex = 0;
+  let trackUrl = '';
+  let loadingPromise = null;
   let seeking = false;
 
   const formatTime = (seconds) => {
@@ -54,8 +51,6 @@ if (segmentedPlayer) {
     return `${String(minutes).padStart(2, '0')}:${String(Math.floor(safe % 60)).padStart(2, '0')}`;
   };
 
-  const globalTime = () => offsets[segmentIndex] + (audio.currentTime || 0);
-
   const paintProgress = (seconds) => {
     const percent = Math.min(100, Math.max(0, seconds / totalDuration * 100));
     progress.style.setProperty('--progress', `${percent}%`);
@@ -63,25 +58,55 @@ if (segmentedPlayer) {
     if (!seeking) progress.value = String(seconds);
   };
 
-  const loadSegment = (index, localTime = 0, shouldPlay = false) => {
-    segmentIndex = Math.max(0, Math.min(sources.length - 1, index));
-    audio.src = sources[segmentIndex];
-    audio.load();
-    audio.addEventListener('loadedmetadata', () => {
-      audio.currentTime = Math.min(localTime, Math.max(0, audio.duration - .05));
-      if (shouldPlay) audio.play().catch(() => {
-        playerUI.classList.remove('is-playing');
-        state.textContent = 'PLAY';
-      });
-    }, { once: true });
+  const ensureTrack = () => {
+    if (trackUrl) return Promise.resolve();
+
+    if (!loadingPromise) {
+      toggle.disabled = true;
+      state.textContent = 'LOADING';
+
+      loadingPromise = Promise.all(sources.map(async (source) => {
+        const response = await fetch(source);
+        if (!response.ok) throw new Error(`Audio chunk failed: ${response.status}`);
+        return response.arrayBuffer();
+      }))
+        .then((chunks) => {
+          trackUrl = URL.createObjectURL(new Blob(chunks, { type: 'audio/mpeg' }));
+          audio.src = trackUrl;
+          audio.load();
+          return new Promise((resolve, reject) => {
+            audio.addEventListener('canplay', resolve, { once: true });
+            audio.addEventListener('error', reject, { once: true });
+          });
+        })
+        .then(() => {
+          toggle.disabled = false;
+          state.textContent = 'PLAY';
+        })
+        .catch((error) => {
+          console.error(error);
+          toggle.disabled = false;
+          state.textContent = 'ERROR';
+          showToast('The recording could not be loaded. Please try again.');
+          loadingPromise = null;
+          throw error;
+        });
+    }
+
+    return loadingPromise;
   };
 
-  toggle.addEventListener('click', () => {
-    if (audio.paused) {
-      if (globalTime() >= totalDuration - .1) loadSegment(0, 0, true);
-      else audio.play();
-    } else {
-      audio.pause();
+  toggle.addEventListener('click', async () => {
+    try {
+      await ensureTrack();
+      if (audio.paused) {
+        if (audio.currentTime >= totalDuration - .1) audio.currentTime = 0;
+        await audio.play();
+      } else {
+        audio.pause();
+      }
+    } catch {
+      // The visible player state and toast already report the loading error.
     }
   });
 
@@ -93,22 +118,17 @@ if (segmentedPlayer) {
 
   audio.addEventListener('pause', () => {
     playerUI.classList.remove('is-playing');
-    state.textContent = 'PLAY';
+    if (state.textContent !== 'ERROR') state.textContent = 'PLAY';
     toggle.setAttribute('aria-label', 'Play Ordo Draconis');
   });
 
   audio.addEventListener('timeupdate', () => {
-    if (!seeking) paintProgress(globalTime());
+    if (!seeking) paintProgress(audio.currentTime);
   });
 
   audio.addEventListener('ended', () => {
-    if (segmentIndex < sources.length - 1) {
-      loadSegment(segmentIndex + 1, 0, true);
-    } else {
-      segmentIndex = sources.length - 1;
-      paintProgress(totalDuration);
-      state.textContent = 'REPLAY';
-    }
+    paintProgress(totalDuration);
+    state.textContent = 'REPLAY';
   });
 
   progress.addEventListener('input', () => {
@@ -116,22 +136,24 @@ if (segmentedPlayer) {
     paintProgress(Number(progress.value));
   });
 
-  progress.addEventListener('change', () => {
-    const target = Number(progress.value);
-    const nextIndex = Math.min(
-      segmentDurations.length - 1,
-      offsets.findIndex((offset, index) => target < offset + segmentDurations[index])
-    );
-    const resolvedIndex = nextIndex < 0 ? segmentDurations.length - 1 : nextIndex;
-    const wasPlaying = !audio.paused;
-    loadSegment(resolvedIndex, target - offsets[resolvedIndex], wasPlaying);
-    seeking = false;
-    paintProgress(target);
+  progress.addEventListener('change', async () => {
+    try {
+      await ensureTrack();
+      audio.currentTime = Number(progress.value);
+      seeking = false;
+      paintProgress(audio.currentTime);
+    } catch {
+      seeking = false;
+    }
   });
 
   volume.addEventListener('input', () => {
     audio.volume = Number(volume.value);
     volume.style.setProperty('--progress', `${Number(volume.value) * 100}%`);
+  });
+
+  window.addEventListener('beforeunload', () => {
+    if (trackUrl) URL.revokeObjectURL(trackUrl);
   });
 
   audio.volume = Number(volume.value);

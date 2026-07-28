@@ -283,6 +283,7 @@ p { color: #c7b9a8; }
   font-size: 1.15rem;
 }
 .player-toggle:hover, .player-toggle:focus-visible { background: #d13a33; }
+.player-toggle:disabled { opacity: .62; cursor: wait; }
 .pause-icon { display: none; }
 .audio-player.is-playing .play-icon { display: none; }
 .audio-player.is-playing .pause-icon { display: inline; }
