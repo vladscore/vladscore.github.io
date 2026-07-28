@@ -291,11 +291,19 @@ if (!prefersReducedMotion) {
       const y = (event.clientY - bounds.top) / bounds.height - .5;
       hero.style.setProperty('--motion-x', `${x * 16}px`);
       hero.style.setProperty('--motion-y', `${y * 10}px`);
+      hero.style.setProperty('--copy-x', `${x * -2.6}px`);
+      hero.style.setProperty('--copy-y', `${y * -1.6}px`);
+      hero.style.setProperty('--depth-x', `${x * 5.6}px`);
+      hero.style.setProperty('--depth-y', `${y * 3.5}px`);
     });
   });
   hero?.addEventListener('pointerleave', () => {
     hero.style.setProperty('--motion-x', '0px');
     hero.style.setProperty('--motion-y', '0px');
+    hero.style.setProperty('--copy-x', '0px');
+    hero.style.setProperty('--copy-y', '0px');
+    hero.style.setProperty('--depth-x', '0px');
+    hero.style.setProperty('--depth-y', '0px');
   });
 
   let scrollFrame = 0;
