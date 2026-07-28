@@ -282,12 +282,7 @@ if (segmentedPlayer) {
 
   audio.addEventListener('timeupdate', () => {
     if (!seeking) paintProgress(audio.currentTime);
-    const endingFadeSeconds = 8;
-    const remaining = totalDuration - audio.currentTime;
-    if (!audio.loop && !sleepEndAt && remaining >= 0 && remaining < endingFadeSeconds) {
-      const fade = Math.sqrt(Math.max(0, remaining / endingFadeSeconds));
-      audio.volume = Number(volume.value) * fade;
-    } else if (!sleepFadeTimer && Math.abs(audio.volume - Number(volume.value)) > .01) {
+    if (!sleepFadeTimer && Math.abs(audio.volume - Number(volume.value)) > .01) {
       audio.volume = Number(volume.value);
     }
     const second = Math.floor(audio.currentTime);
