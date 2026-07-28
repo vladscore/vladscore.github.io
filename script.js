@@ -483,6 +483,10 @@ if (!prefersReducedMotion) {
       hero.style.setProperty('--copy-y', `${y * -1.6}px`);
       hero.style.setProperty('--depth-x', `${x * 5.6}px`);
       hero.style.setProperty('--depth-y', `${y * 3.5}px`);
+      hero.style.setProperty('--light-x', `${x * -20}px`);
+      hero.style.setProperty('--light-y', `${y * -13}px`);
+      hero.style.setProperty('--focus-x', `${x * 3}%`);
+      hero.style.setProperty('--focus-y', `${y * 2}%`);
     });
   });
   hero?.addEventListener('pointerleave', () => {
@@ -492,6 +496,10 @@ if (!prefersReducedMotion) {
     hero.style.setProperty('--copy-y', '0px');
     hero.style.setProperty('--depth-x', '0px');
     hero.style.setProperty('--depth-y', '0px');
+    hero.style.setProperty('--light-x', '0px');
+    hero.style.setProperty('--light-y', '0px');
+    hero.style.setProperty('--focus-x', '0%');
+    hero.style.setProperty('--focus-y', '0%');
   });
 
   let scrollFrame = 0;
