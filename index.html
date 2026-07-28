@@ -9,8 +9,11 @@
   <meta property="og:description" content="Music for the war of swords, ink, and memory.">
   <meta property="og:type" content="website">
   <title>Vlad, Son of the Dragon — Book Score & Modern Reworks</title>
-  <link rel="stylesheet" href="styles.css?v=15">
-  <script src="script.js?v=15" defer></script>
+  <link rel="icon" type="image/svg+xml" href="assets/order-of-the-dragon-emblem.svg">
+  <link rel="stylesheet" href="styles.css?v=16">
+  <link rel="stylesheet" href="surprises.css?v=16">
+  <script src="script.js?v=16" defer></script>
+  <script src="surprises.js?v=16" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
@@ -83,14 +86,20 @@
       <div class="release-panel player-panel" data-segmented-player data-duration="279.816" data-sources='["assets/audio/ordo-draconis-00.part","assets/audio/ordo-draconis-01.part","assets/audio/ordo-draconis-02.part","assets/audio/ordo-draconis-03.part","assets/audio/ordo-draconis-04.part","assets/audio/ordo-draconis-05.part"]'>
         <div class="release-copy">
           <div class="track-identity">
-            <div class="track-artwork" aria-hidden="true">
-              <span class="artwork-woman"></span>
-              <svg class="vocal-ornament" viewBox="0 0 120 120" focusable="false">
+            <button class="artwork-switch" type="button" aria-label="Reveal alternate artwork" aria-pressed="false">
+              <span class="track-artwork" aria-hidden="true">
+                <span class="artwork-woman"></span>
+                <svg class="vocal-ornament" viewBox="0 0 120 120" focusable="false">
                 <circle class="dragon-thread" cx="60" cy="60" r="42"></circle>
                 <path class="voice-veil" d="M21 73 C39 35, 66 31, 98 54 C75 52, 58 66, 47 98"></path>
                 <path class="voice-veil voice-veil-second" d="M26 82 C49 47, 72 47, 101 65"></path>
-              </svg>
-            </div>
+                </svg>
+              </span>
+              <span class="track-artwork track-artwork-alt" aria-hidden="true">
+                <img src="assets/order-of-the-dragon-emblem.svg" alt="">
+                <span>THE OATH<br>OUTLIVES<br>THE MAN</span>
+              </span>
+            </button>
             <div>
               <p class="eyebrow">Modern Reworks · First release · 04:40</p>
               <h3>Ordo Draconis — The Dragon’s Bloodline</h3>
@@ -223,6 +232,10 @@
       <span>THE DEED BECOMES A NUMBER.</span>
       <span>THE NUMBER BECOMES A MONSTER.</span>
     </div>
+    <div class="raven-shadow" aria-hidden="true"></div>
+    <div class="ember-field" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+    <div class="threshold-whisper" data-threshold-whisper aria-hidden="true"></div>
+    <div class="dragon-pulse" aria-hidden="true"><img src="assets/order-of-the-dragon-emblem.svg" alt=""></div>
     <button class="secret-sigil secret-sigil-one" type="button" data-secret="dragon" aria-label="A hidden mark: the Dragon">D</button>
     <button class="secret-sigil secret-sigil-two" type="button" data-secret="ink" aria-label="A hidden mark: the Ink">I</button>
     <button class="secret-sigil secret-sigil-three" type="button" data-secret="crown" aria-label="A hidden mark: the Crown">M</button>
