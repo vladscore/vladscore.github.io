@@ -322,3 +322,11 @@
     window.addEventListener('resize', drawStaticVisualizer, { passive:true });
   });
 })();
+
+/* Load the hardened playback path after the generated players exist. */
+(() => {
+  const script = document.createElement('script');
+  script.src = 'audio-fix.js?v=2';
+  script.defer = true;
+  document.head.appendChild(script);
+})();
