@@ -79,6 +79,8 @@
   }, 28000);
 })();
 
-import('./score-library-v3.js?v=1').catch((error) => {
-  console.error('Score library could not be loaded:', error);
-});
+import('./score-library-v3.js?v=1')
+  .then(() => import('./score-wave-ordo.js?v=1'))
+  .catch((error) => {
+    console.error('Score library could not be loaded:', error);
+  });
