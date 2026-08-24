@@ -1,0 +1,76 @@
+name: Import Vlad score audio
+
+on:
+  push:
+    paths:
+      - '.github/workflows/import-vlad-audio.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  import-audio:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download and split score files
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p assets/audio assets/covers /tmp/vlad-audio
+
+          download() {
+            local id="$1"
+            local output="$2"
+            curl -L --fail --retry 4 --retry-delay 2 \
+              "https://drive.usercontent.google.com/download?id=${id}&export=download&confirm=t" \
+              -o "$output"
+            test -s "$output"
+          }
+
+          download "1Wvj8ZJsORZ2OcWr3jMnBqhtiYsYHfyog" "/tmp/vlad-audio/filius-draconis.mp3"
+          download "1s7M9PkvHb2HKdGjGfKPB4tQYNw2i-o-G" "/tmp/vlad-audio/sultans-house.mp3"
+          download "1nvhwQJvfQbKWZjazdUuyWOLSrvlLAxhu" "/tmp/vlad-audio/ottoman-host.mp3"
+          download "10sMkyPGNCPNBgqAec54LlvjILlDsTf94" "/tmp/vlad-audio/sanctus-lumen.mp3"
+          download "17yQtYW0WyShZbzlZhW-BvPr9grjx4GKa" "/tmp/vlad-audio/letter-to-father.mp3"
+          download "1MthdN8uTqTw0JcV4tHkw7fgFRvoO0sKK" "/tmp/vlad-audio/the-tragedy.mp3"
+          download "1RxTaoQJwZpGafGHbva7qjt7eoGadzoEY" "/tmp/vlad-audio/after-the-war.mp3"
+          download "1yKbo8QnY9hUsChBykY-TjCDnlsxjwJ50" "/tmp/vlad-audio/they-took-you-east.mp3"
+          download "1TmCamdSlqJMHVU21_2VEkagg3Vw296mR" "assets/covers/they-took-you-east.png"
+
+          python - <<'PY'
+          from pathlib import Path
+          src = Path('/tmp/vlad-audio')
+          out = Path('assets/audio')
+          chunk_size = 750_000
+          for mp3 in sorted(src.glob('*.mp3')):
+              data = mp3.read_bytes()
+              if len(data) < 250_000:
+                  raise SystemExit(f'{mp3.name}: download is unexpectedly small ({len(data)} bytes)')
+              if data[:16].lstrip().lower().startswith(b'<!doctype') or b'<html' in data[:256].lower():
+                  raise SystemExit(f'{mp3.name}: Google returned HTML instead of MP3')
+              slug = mp3.stem
+              for old in out.glob(f'{slug}-*.part'):
+                  old.unlink()
+              for index, start in enumerate(range(0, len(data), chunk_size)):
+                  (out / f'{slug}-{index:02d}.part').write_bytes(data[start:start + chunk_size])
+              print(slug, len(data), 'bytes')
+          PY
+
+      - name: Commit imported media
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/audio assets/covers/they-took-you-east.png
+          if git diff --cached --quiet; then
+            echo "No audio changes to commit."
+            exit 0
+          fi
+          git commit -m "Host Vlad score audio locally for reliable playback"
+          git push origin HEAD:main
